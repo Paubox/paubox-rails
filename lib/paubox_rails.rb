@@ -11,7 +11,7 @@ module PauboxRails
 end
 
 if defined?(Rails)
-  require 'paubox-rails/railtie'
+  require 'paubox_rails/railtie'
 else
   PauboxRails.add_base_delivery
 end
