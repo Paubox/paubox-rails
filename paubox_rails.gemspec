@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.summary       = %q{Paubox Transactional Email API adapter for ActionMailer.'}
   spec.description   = %q{The Paubox Rails Gem integrates Paubox's Transactional Email HTTP API with ActionMailer.}
   spec.homepage      = "https://www.paubox.com"
-  spec.license       = "MIT"
+  spec.license       = 'Apache-2.0'
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^(test|spec|features)/})
@@ -21,9 +21,12 @@ Gem::Specification.new do |spec|
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
-  spec.add_dependency('actionmailer', ">= 4.0.0")
-  spec.add_dependency('paubox', ">= 0.1.0")
+
   spec.add_development_dependency "bundler", "~> 1.14"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.2"
+  spec.add_development_dependency 'pry'
+
+  spec.add_dependency('actionmailer', ">= 4.0.0")
+  spec.add_dependency('paubox', ">= 0.1.0")
 end

@@ -5,7 +5,7 @@ require 'paubox'
 module PauboxRails
   extend self
 
-  def install
+  def add_base_delivery
     ActionMailer::Base.add_delivery_method :paubox, Mail::Paubox
   end
 end
@@ -13,5 +13,5 @@ end
 if defined?(Rails)
   require 'paubox-rails/railtie'
 else
-  PauboxRails.install
+  PauboxRails.add_base_delivery
 end
