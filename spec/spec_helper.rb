@@ -1,5 +1,6 @@
 require "bundler/setup"
 require "paubox_rails"
+require "paubox"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
