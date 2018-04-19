@@ -1,8 +1,8 @@
 # PauboxRails
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/paubox_rails`. To experiment with that code, run `bin/console` for an interactive prompt.
+#### This gem, Paubox Ruby, and Paubox Transactional Email HTTP API are currently in pre-alpha development.
 
-TODO: Delete this and the text above, and describe your gem
+This gem extends the [Paubox Ruby Gem](https://github.com/paubox/paubox_ruby) for use with ActionMailer in Ruby on Rails. Paubox Ruby the official Ruby wrapper for the Paubox Transactional Email HTTP API. The Paubox Transactional Email API allows your application to send secure, HIPAA-compliant email via Paubox and track deliveries and opens.
 
 ## Installation
 
@@ -20,15 +20,30 @@ Or install it yourself as:
 
     $ gem install paubox_rails
 
+### Getting Paubox API Credentials
+You will need to have a Paubox account. Please contact [Paubox Customer Success](https://paubox.zendesk.com/hc/en-us) for details on gaining access to the Transactional Email API alpha testing program.
+
+### Configuring API Credentials
+Create a new file at config/initializers/paubox.rb and add the following.
+ 
+	Paubox.configure do |config|
+     config.api_key = ENV['PAUBOX_API_KEY']
+     config.api_user = ENV['PAUBOX_API_USER']
+    end
+
+Keep your API credentials out of version control. Set these environmental variables in a file that's not checked into version control, such as config/application.yml or config/secrets.yml.
+
+### Setting ActionMailer Delivery Method
+
+Add the following to the configuration block in config/application.rb or the desired environment config in config/environments (e.g. config/environments/production.rb for production.)
+		
+	    config.action_mailer.delivery_method = :paubox
+
+
 ## Usage
 
 TODO: Write usage instructions here
 
-## Development
-
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
 ## Contributing
 
