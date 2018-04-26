@@ -1,4 +1,4 @@
-# PauboxRails
+# Paubox Rails
 
 #### This gem, Paubox Ruby, and Paubox Transactional Email HTTP API are currently in pre-alpha development.
 
@@ -20,8 +20,10 @@ Or install it yourself as:
 
     $ gem install paubox_rails
 
+
 ### Getting Paubox API Credentials
 You will need to have a Paubox account. Please contact [Paubox Customer Success](https://paubox.zendesk.com/hc/en-us) for details on gaining access to the Transactional Email API alpha testing program.
+
 
 ### Configuring API Credentials
 Create a new file at config/initializers/paubox.rb and add the following.
@@ -33,12 +35,13 @@ Create a new file at config/initializers/paubox.rb and add the following.
 
 Keep your API credentials out of version control. Set these environmental variables in a file that's not checked into version control, such as config/application.yml or config/secrets.yml.
 
+
 ### Setting ActionMailer Delivery Method
 
 Add the following to the configuration block in config/application.rb or the desired environment config in config/environments (e.g. config/environments/production.rb for production.)
-		
-	    config.action_mailer.delivery_method = :paubox
 
+    config.action_mailer.delivery_method = :paubox
+    
 
 ## Usage
 
