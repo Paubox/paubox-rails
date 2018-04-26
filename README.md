@@ -42,7 +42,7 @@ Add the following to the configuration block in config/application.rb or the des
 
 ## Usage
 
-TODO: Write usage instructions here
+See the [Paubox Ruby Gem](https://github.com/Paubox/paubox_ruby) for usage examples.
 
 
 ## Contributing
