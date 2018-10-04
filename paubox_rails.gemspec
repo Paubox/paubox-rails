@@ -26,6 +26,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rake', '~> 10.0'
   spec.add_development_dependency 'rspec', '~> 3.2'
   spec.add_development_dependency 'pry', '~> 0.10.4'
-  spec.add_dependency('actionmailer', '>= 4.0', '<= 5.2')
+  spec.add_dependency('actionmailer', '>= 4.0', '<= 5.3')
   spec.add_dependency('paubox', '~> 0.2', '>= 0.2.3')
 end
