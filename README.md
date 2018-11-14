@@ -50,8 +50,28 @@ config.action_mailer.delivery_method = :paubox
 
 ## Usage
 
-See the [Paubox Ruby Gem](https://github.com/Paubox/paubox_ruby) for usage examples.
+You can use [Action Mailer](https://guides.rubyonrails.org/action_mailer_basics.html) as you normally would in a Rails app.
 
+See the [Paubox Ruby Gem](https://github.com/Paubox/paubox_ruby) for more advanced usage examples.
+
+## Allowing non-TLS message delivery with Action Mailer
+
+Set ``allow_non_tls`` to true in the ``delivery_method_options`` hash argument and pass this into the mailer action.
+
+For example:
+
+```ruby
+class UserMailer < ApplicationMailer
+  def welcome_email
+    @user = params[:user]
+    @url  = user_url(@user)
+    delivery_options = { allow_non_tls: true }
+    mail(to: @user.email,
+         subject: "Welcome!",
+         delivery_method_options: delivery_options)
+  end
+end
+```
 
 ## Contributing
 
