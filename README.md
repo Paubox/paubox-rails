@@ -2,10 +2,9 @@
 
 # Paubox Rails
 
-This gem extends the [Paubox Ruby Gem](https://github.com/paubox/paubox_ruby) for use with ActionMailer in Ruby on Rails. Paubox Ruby the official Ruby wrapper for the Paubox Transactional Email HTTP API. The Paubox Transactional Email API allows your application to send secure, HIPAA-compliant email via Paubox and track deliveries and opens.
+This gem extends the [Paubox Ruby Gem](https://github.com/paubox/paubox_ruby) for use with ActionMailer in Ruby on Rails. 
 
-This gem, Paubox Ruby, and Paubox Transactional Email HTTP API are currently in alpha development.
-
+The Paubox Email API allows your application to send secure, HIPAA compliant email via Paubox and track deliveries and opens.
 
 ## Installation
 
@@ -91,4 +90,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 ## Copyright
-Copyright &copy; 2019, Paubox Inc.
+Copyright &copy; 2020, Paubox Inc.
