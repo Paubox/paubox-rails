@@ -37,7 +37,7 @@ Paubox.configure do |config|
 end
 ```
 
-Keep your API credentials out of version control. Set these environmental variables in a file that's not checked into version control, such as config/application.yml or config/secrets.yml.
+Note: Keep your unencrypted API credentials out of version control. Set as environment variables in a file that's not checked into version control, such as config/application.yml or config/secrets.yml. Better yet, use Rails Encrypted Secrets.
 
 
 ### Setting ActionMailer Delivery Method

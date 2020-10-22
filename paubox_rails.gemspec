@@ -6,8 +6,8 @@ require 'paubox_rails/version'
 Gem::Specification.new do |spec|
   spec.name          = "paubox_rails"
   spec.version       = PauboxRails::VERSION
-  spec.authors       = ["Jonathan Greeley"]
-  spec.email         = ["jonathan@paubox.com"]
+  spec.authors       = ["Paubox, Inc."]
+  spec.email         = ["engineering@paubox.com"]
 
   spec.summary       = %q{Paubox Transactional Email API adapter for ActionMailer.'}
   spec.description   = %q{The Paubox Rails Gem integrates Paubox's Transactional Email HTTP API with ActionMailer.}
@@ -22,10 +22,10 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_development_dependency 'bundler', '~> 1.14'
-  spec.add_development_dependency 'rake', '~> 10.0'
+  spec.add_development_dependency 'bundler', '~> 2.0'
   spec.add_development_dependency 'rspec', '~> 3.2'
-  spec.add_development_dependency 'pry', '~> 0.10.4'
-  spec.add_dependency('actionmailer', '>= 4.0', '<= 5.3')
+  spec.add_development_dependency 'pry'
+  spec.add_development_dependency "rake", ">= 12.3.3"
+  spec.add_dependency('actionmailer', '>= 4.0')
   spec.add_dependency('paubox', '~> 0.3', '>= 0.3.0')
 end
