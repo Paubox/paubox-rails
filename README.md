@@ -2,9 +2,12 @@
 
 # Paubox Rails
 
-This gem extends the [Paubox Ruby Gem](https://github.com/paubox/paubox_ruby) for use with ActionMailer in Ruby on Rails. 
+This gem extends the [Paubox Ruby Gem](https://github.com/paubox/paubox_ruby) for use with ActionMailer in Ruby on Rails.
 
 The Paubox Email API allows your application to send secure, HIPAA compliant email via Paubox and track deliveries and opens.
+
+## Compatibility
+This gem has been tested and confirmed working with Rails 4-6
 
 ## Installation
 
