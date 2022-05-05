@@ -77,7 +77,7 @@ end
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/paubox/paubox_rails.
+Bug reports and pull requests are welcome on GitHub at https://github.com/paubox/paubox-rails.
 
 
 ## License
@@ -93,4 +93,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 ## Copyright
-Copyright &copy; 2021, Paubox, Inc.
+Copyright &copy; 2022, Paubox, Inc.
