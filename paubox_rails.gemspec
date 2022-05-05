@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["engineering@paubox.com"]
 
   spec.summary       = %q{Paubox Transactional Email API adapter for ActionMailer.'}
-  spec.description   = %q{The Paubox Rails Gem integrates Paubox's Transactional Email HTTP API with ActionMailer.}
+  spec.description   = %q{The Paubox Rails gem integrates Paubox's Transactional Email HTTP API with ActionMailer.}
   spec.homepage      = "https://www.paubox.com"
   spec.license       = 'Apache-2.0'
 
