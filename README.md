@@ -1,3 +1,5 @@
+# This software is unmaintained, and shouldn't be used.
+
 <img src="https://avatars.githubusercontent.com/u/22528478?s=200&v=4" alt="Paubox" width="150px">
 
 # Paubox Rails
