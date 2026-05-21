@@ -1,6 +1,7 @@
 require "paubox_rails/version"
 require 'action_mailer'
 require 'paubox'
+require 'paubox_rails/forms'
 
 module PauboxRails
   extend self

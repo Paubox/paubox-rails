@@ -75,6 +75,64 @@ class UserMailer < ApplicationMailer
 end
 ```
 
+## Paubox Forms
+
+The gem includes a client for the [Paubox Forms API](https://docs.paubox.com/forms). These endpoints are **public** — no API key or authentication is required.
+
+### Get form metadata
+
+Retrieves a form's full definition (HTML, JSON schema, CSS, metadata).
+
+```ruby
+client = PauboxRails::Forms::Client.new
+# or use the convenience factory:
+client = PauboxRails::Forms.client
+
+form = client.get_form('550e8400-e29b-41d4-a716-446655440000')
+puts form['title']            # => "Patient Intake Form"
+puts form['active']           # => true
+puts form['submission_count'] # => 42
+```
+
+Raises `PauboxRails::Forms::NotFoundError` if the form UUID does not exist.
+
+### Submit a form response
+
+Submits a respondent's answers for a form. On success, Paubox stores the submission, increments the submission count, and emails recipients (if configured).
+
+```ruby
+client.submit_form(
+  '550e8400-e29b-41d4-a716-446655440000',
+  form_data: {
+    first_name: 'Jane',
+    last_name:  'Smith',
+    email:      'jane@example.com'
+  }
+)
+# => true
+```
+
+#### With file attachments
+
+Attachments must be base64-encoded. Maximum request size is 250 MB.
+
+```ruby
+require 'base64'
+
+client.submit_form(
+  '550e8400-e29b-41d4-a716-446655440000',
+  form_data: { first_name: 'Jane' },
+  attachments: [
+    {
+      name:    'consent.pdf',
+      content: Base64.strict_encode64(File.read('consent.pdf'))
+    }
+  ]
+)
+```
+
+Raises `PauboxRails::Forms::BadRequestError` on a 400 response, or `PauboxRails::Forms::NotFoundError` if the form is not found.
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/paubox/paubox-rails.
