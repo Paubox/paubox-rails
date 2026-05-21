@@ -9,7 +9,7 @@ This document covers the API endpoints exposed by `paubox-rails`. The gem wraps 
 
 ## Forms API
 
-**Base URL:** `https://next.paubox.com`
+**Base URL:** `https://apx.paubox.com/forms`
 
 No authentication is required for any Forms endpoint. These endpoints are called on behalf of form respondents, not server-side API consumers.
 

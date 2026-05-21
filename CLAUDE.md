@@ -35,7 +35,7 @@ paubox-rails
 ├── Email path
 │   ActionMailer → Mail::Paubox (from paubox gem) → RestClient → api.paubox.net
 └── Forms path
-    PauboxRails::Forms::Client → Net::HTTP → next.paubox.com
+    PauboxRails::Forms::Client → Net::HTTP → apx.paubox.com/forms
 ```
 
 - Email credentials (`api_key`, `api_user`) are configured via `Paubox.configure`.
