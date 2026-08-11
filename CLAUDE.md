@@ -5,7 +5,7 @@
 `paubox-rails` is a thin Rails adapter gem with two responsibilities:
 
 1. **Email delivery** — Registers `:paubox` as an ActionMailer delivery method, delegating all sending to the [`paubox`](https://github.com/paubox/paubox_ruby) gem (`Mail::Paubox`).
-2. **Forms API client** — Provides `PauboxRails::Forms::Client` for interacting with the Paubox Forms public API (no auth required).
+2. **Forms API client** — Provides `PauboxRails::Forms::Client` for interacting with the Paubox Forms API: public respondent endpoints (`get_form`, `submit_form` — no auth) plus authenticated form-management endpoints (list/create/update/archive/copy forms, stats, submissions, CSV/PDF export) that require a scoped API key with the `forms` scope, sent as `Authorization: Bearer`.
 
 ## Key files
 
@@ -39,7 +39,7 @@ paubox-rails
 ```
 
 - Email credentials (`api_key`, `api_user`) are configured via `Paubox.configure`.
-- Forms endpoints are **public** — no credentials needed.
+- Forms **respondent endpoints** (`get_form`, `submit_form`) are public — no credentials needed. All other Forms endpoints require a scoped API key (`forms` scope), passed via `Forms.client(api_key: ...)` or the `PAUBOX_FORMS_API_KEY` env var.
 
 ## Running tests
 
@@ -62,7 +62,8 @@ Email functionality lives in the `paubox` gem (not here). This gem only bridges 
 
 ## Version
 
-Current: `0.2.0` (in `lib/paubox_rails/version.rb`)
+Current: `0.3.0` (in `lib/paubox_rails/version.rb`)
 
 - `0.1.x` — Initial releases, email delivery only
-- `0.2.0` — Added Paubox Forms API support
+- `0.2.0` — Added Paubox Forms API support (public respondent endpoints)
+- `0.3.0` — Full Forms API support, including scoped-API-key (authenticated) management endpoints

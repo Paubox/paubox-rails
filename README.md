@@ -77,7 +77,7 @@ end
 
 ## Paubox Forms
 
-The gem includes a client for the [Paubox Forms API](https://docs.paubox.com/forms). These endpoints are **public** — no API key or authentication is required.
+The gem includes a client for the [Paubox Forms API](https://docs.paubox.com/forms). The respondent-facing endpoints (fetching a form definition and submitting a response) are **public** — no API key or authentication is required. The form management endpoints (listing, creating, updating, exporting submissions, etc.) require a **scoped API key** — see [Authenticated usage](#authenticated-usage-form-management) below.
 
 ### Get form metadata
 
@@ -132,6 +132,47 @@ client.submit_form(
 ```
 
 Raises `PauboxRails::Forms::BadRequestError` on a 400 response, or `PauboxRails::Forms::NotFoundError` if the form is not found.
+
+### Authenticated usage (form management)
+
+The management endpoints require a Paubox API key scoped to **forms**. Generate a scoped API key from your Paubox dashboard and grant it the `forms` scope, then pass it to the client:
+
+```ruby
+client = PauboxRails::Forms.client(api_key: ENV['PAUBOX_FORMS_API_KEY'])
+```
+
+Or rely on the environment-variable fallback — the client reads `PAUBOX_FORMS_API_KEY` by default:
+
+```ruby
+client = PauboxRails::Forms.client
+```
+
+The key is sent as an `Authorization: Bearer` header. Calling an authenticated method without a key raises `PauboxRails::Forms::MissingApiKeyError` before any HTTP request is made. A missing or invalid key — including a key **without the `forms` scope** — is rejected with 401 and raises `PauboxRails::Forms::UnauthorizedError`; a 403 (`PauboxRails::Forms::ForbiddenError`) means the key is valid but its customer does not have access to the target form or customer.
+
+Some examples:
+
+```ruby
+# List forms (customer_id is required; filtering, ordering, and pagination are optional)
+result = client.list_forms(customer_id: 123, search: 'intake', order_by: 'updated_at', page: 1)
+result['results'] # => array of forms
+
+# Create a form
+created = client.create_form(
+  title:       'Patient Intake Form',
+  form_json:   { fields: [{ name: 'first_name', type: 'text' }] },
+  customer_id: 123,
+  version:     1
+)
+created['id'] # => UUID of the new form
+
+# List a form's submissions
+client.list_submissions(form_id, page: 1, items: 25)
+
+# Export submissions as CSV (raw string)
+File.write('submissions.csv', client.submissions_csv(form_id))
+```
+
+Also available: `get_form_details`, `update_form`, `archive_form`, `unarchive_form`, `copy_form`, `form_stats`, and `submission_pdf`. See [api.md](api.md) for the full Forms API reference.
 
 ## Contributing
 

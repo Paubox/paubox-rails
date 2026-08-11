@@ -7,9 +7,12 @@ module PauboxRails
     class Error < StandardError; end
     class NotFoundError < Error; end
     class BadRequestError < Error; end
+    class UnauthorizedError < Error; end
+    class ForbiddenError < Error; end
+    class MissingApiKeyError < Error; end
 
-    def self.client
-      Client.new
+    def self.client(**options)
+      Client.new(**options)
     end
   end
 end
