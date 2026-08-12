@@ -3,11 +3,14 @@ require 'spec_helper'
 RSpec.describe PauboxRails::Forms::Client do
   let(:client) { described_class.new }
   let(:form_id) { '550e8400-e29b-41d4-a716-446655440000' }
+  let(:submission_id) { '7f2e1b2a-3c9d-4a8b-9c4e-2f1a3b5c7d9e' }
   let(:http) { instance_double(Net::HTTP) }
 
   before do
     allow(Net::HTTP).to receive(:new).and_return(http)
     allow(http).to receive(:use_ssl=)
+    allow(http).to receive(:open_timeout=)
+    allow(http).to receive(:read_timeout=)
   end
 
   describe '#get_form' do
@@ -103,18 +106,23 @@ RSpec.describe PauboxRails::Forms::Client do
     let(:auth_client) { described_class.new(api_key: api_key) }
 
     describe 'authentication' do
+      # A valid UUID is used for every id here so the api_key guard is
+      # exercised on its own — path_segment! (which also raises pre-HTTP on
+      # non-UUID input) is asserted separately under 'URL-path safety'.
+      valid_form_id = '550e8400-e29b-41d4-a716-446655440000'
+      valid_submission_id = '7f2e1b2a-3c9d-4a8b-9c4e-2f1a3b5c7d9e'
       PROTECTED_CALLS = {
         list_forms: ->(c) { c.list_forms(customer_id: 1) },
         create_form: ->(c) { c.create_form(title: 'T', form_json: {}, customer_id: 1, version: 1) },
-        get_form_details: ->(c) { c.get_form_details('abc') },
-        update_form: ->(c) { c.update_form('abc', title: 'T') },
-        archive_form: ->(c) { c.archive_form('abc') },
-        unarchive_form: ->(c) { c.unarchive_form('abc') },
-        copy_form: ->(c) { c.copy_form('abc', title: 'Copy') },
+        get_form_details: ->(c) { c.get_form_details(valid_form_id) },
+        update_form: ->(c) { c.update_form(valid_form_id, title: 'T') },
+        archive_form: ->(c) { c.archive_form(valid_form_id) },
+        unarchive_form: ->(c) { c.unarchive_form(valid_form_id) },
+        copy_form: ->(c) { c.copy_form(valid_form_id, title: 'Copy') },
         form_stats: ->(c) { c.form_stats },
-        list_submissions: ->(c) { c.list_submissions('abc') },
-        submissions_csv: ->(c) { c.submissions_csv('abc') },
-        submission_pdf: ->(c) { c.submission_pdf('abc', 'sub-1') }
+        list_submissions: ->(c) { c.list_submissions(valid_form_id) },
+        submissions_csv: ->(c) { c.submissions_csv(valid_form_id) },
+        submission_pdf: ->(c) { c.submission_pdf(valid_form_id, valid_submission_id) }
       }.freeze
 
       context 'when the client has no api_key' do
@@ -431,7 +439,7 @@ RSpec.describe PauboxRails::Forms::Client do
     describe '#list_submissions' do
       let(:submissions_body) do
         {
-          'data' => [{ 'id' => 'sub-1', 'submitter_email' => 'jane@example.com' }],
+          'data' => [{ 'id' => submission_id, 'submitter_email' => 'jane@example.com' }],
           'total' => 1, 'page' => 1, 'items' => 50
         }.to_json
       end
@@ -441,7 +449,7 @@ RSpec.describe PauboxRails::Forms::Client do
         allow(http).to receive(:request).and_return(response)
 
         result = auth_client.list_submissions(form_id)
-        expect(result['data'].first['id']).to eq('sub-1')
+        expect(result['data'].first['id']).to eq(submission_id)
         expect(result['total']).to eq(1)
       end
 
@@ -480,11 +488,11 @@ RSpec.describe PauboxRails::Forms::Client do
       it 'appends the submission_id to the path for a single submission' do
         response = instance_double(Net::HTTPResponse, code: '200', body: csv_body)
         allow(http).to receive(:request) do |req|
-          expect(req.path).to eq("/forms/api/forms/#{form_id}/submissions/submission-csv/sub-1")
+          expect(req.path).to eq("/forms/api/forms/#{form_id}/submissions/submission-csv/#{submission_id}")
           response
         end
 
-        expect(auth_client.submissions_csv(form_id, submission_id: 'sub-1')).to eq(csv_body)
+        expect(auth_client.submissions_csv(form_id, submission_id: submission_id)).to eq(csv_body)
       end
 
       it 'raises NotFoundError on 404' do
@@ -503,11 +511,11 @@ RSpec.describe PauboxRails::Forms::Client do
         response = instance_double(Net::HTTPResponse, code: '200', body: pdf_body)
         allow(http).to receive(:request) do |req|
           expect(req.path)
-            .to eq("/forms/api/forms/#{form_id}/submissions/sub-1/submission-pdf")
+            .to eq("/forms/api/forms/#{form_id}/submissions/#{submission_id}/submission-pdf")
           response
         end
 
-        expect(auth_client.submission_pdf(form_id, 'sub-1')).to eq(pdf_body)
+        expect(auth_client.submission_pdf(form_id, submission_id)).to eq(pdf_body)
       end
 
       it 'raises the generic Error on 500 (the API returns 500, not 404, for a missing form or submission)' do
@@ -515,7 +523,7 @@ RSpec.describe PauboxRails::Forms::Client do
                                    body: 'no rows returned by a query that expected to return at least one row')
         allow(http).to receive(:request).and_return(response)
 
-        expect { auth_client.submission_pdf(form_id, 'sub-1') }
+        expect { auth_client.submission_pdf(form_id, submission_id) }
           .to raise_error(PauboxRails::Forms::Error, /Unexpected response 500/)
       end
     end
@@ -541,6 +549,109 @@ RSpec.describe PauboxRails::Forms::Client do
       allow(ENV).to receive(:fetch).with('PAUBOX_FORMS_API_KEY', nil).and_return('env-key')
 
       expect(described_class.new(api_key: 'explicit-key').api_key).to eq('explicit-key')
+    end
+  end
+
+  # Regression suite for caller-supplied path segments. Without validation, a
+  # form_id / submission_id containing "..", "/", "?", or "#" retargets an
+  # authenticated request on the same host and carries the bearer token.
+  # Assertions here run BEFORE any HTTP dispatch — Net::HTTP.new must not be
+  # touched.
+  describe 'URL-path safety (regression)' do
+    let(:api_key) { 'sk-test-key' }
+    let(:auth_client) { described_class.new(api_key: api_key) }
+    let(:no_key_client) { described_class.new(api_key: nil) }
+
+    HOSTILE_IDS = ['..', '.', '', 'abc', 'abc/submissions', 'abc?admin=true',
+                   'abc#anchor', '../public/form_data/x',
+                   '00000000-0000-0000-0000-00000000000'].freeze # last: 31 chars
+
+    AUTHENTICATED_FORM_ID_CALLS = {
+      get_form_details: ->(c, id) { c.get_form_details(id) },
+      update_form:      ->(c, id) { c.update_form(id, title: 'T') },
+      archive_form:     ->(c, id) { c.archive_form(id) },
+      unarchive_form:   ->(c, id) { c.unarchive_form(id) },
+      list_submissions: ->(c, id) { c.list_submissions(id) },
+      submissions_csv:  ->(c, id) { c.submissions_csv(id) },
+      submission_pdf:   ->(c, id) { c.submission_pdf(id, '7f2e1b2a-3c9d-4a8b-9c4e-2f1a3b5c7d9e') }
+    }.freeze
+
+    AUTHENTICATED_FORM_ID_CALLS.each do |name, call|
+      HOSTILE_IDS.each do |bad|
+        it "rejects a hostile form_id (#{bad.inspect}) on ##{name} without dispatching a request" do
+          expect { call.call(auth_client, bad) }.to raise_error(ArgumentError)
+          expect(Net::HTTP).not_to have_received(:new)
+        end
+      end
+    end
+
+    it 'rejects a hostile submission_id on #submission_pdf without dispatching a request' do
+      HOSTILE_IDS.each do |bad|
+        expect do
+          auth_client.submission_pdf('550e8400-e29b-41d4-a716-446655440000', bad)
+        end.to raise_error(ArgumentError)
+      end
+      expect(Net::HTTP).not_to have_received(:new)
+    end
+
+    it 'rejects a hostile submission_id on #submissions_csv without dispatching a request' do
+      HOSTILE_IDS.each do |bad|
+        expect do
+          auth_client.submissions_csv('550e8400-e29b-41d4-a716-446655440000', submission_id: bad)
+        end.to raise_error(ArgumentError)
+      end
+      expect(Net::HTTP).not_to have_received(:new)
+    end
+
+    # Public methods use require_uuid: false to stay backwards-compatible with
+    # any pre-0.3.0 caller that already passes non-UUID identifiers, but the
+    # dot-segment + path-splicing vectors are still blocked.
+    it 'rejects "." / ".." / empty on the public #get_form without dispatching' do
+      ['', '.', '..'].each do |bad|
+        expect { described_class.new.get_form(bad) }.to raise_error(ArgumentError)
+      end
+      expect(Net::HTTP).not_to have_received(:new)
+    end
+
+    it 'percent-encodes URL-splice characters on the public #get_form so they cannot retarget' do
+      { 'abc/submissions' => 'abc%2Fsubmissions',
+        'abc?x=1'          => 'abc%3Fx%3D1',
+        'abc#anchor'       => 'abc%23anchor' }.each do |bad, encoded|
+        response = instance_double(Net::HTTPResponse, code: '200', body: '{}')
+        allow(http).to receive(:get) do |path|
+          # The URL stays scoped to /public/form_data/<encoded> — no query
+          # or fragment splice, no extra path segment.
+          expect(path).to end_with("/public/form_data/#{encoded}")
+          expect(path).not_to include('?', '#')
+          response
+        end
+        described_class.new.get_form(bad)
+      end
+    end
+
+    it 'accepts a valid UUID and leaves it unchanged in the URL' do
+      response = instance_double(Net::HTTPResponse, code: '200', body: '{"data":{}}')
+      allow(http).to receive(:request) do |req|
+        expect(req.path).to eq("/forms/api/forms/#{form_id}")
+        response
+      end
+      auth_client.get_form_details(form_id)
+    end
+  end
+
+  describe 'HTTP timeouts (regression)' do
+    it 'sets explicit open_timeout and read_timeout on every Net::HTTP instance' do
+      # These would hang for the TCP-stack default (~2 min) if not set; the
+      # SDK pins them at build_http time.
+      expect(http).to receive(:open_timeout=)
+        .with(PauboxRails::Forms::Client::DEFAULT_OPEN_TIMEOUT).at_least(:once)
+      expect(http).to receive(:read_timeout=)
+        .with(PauboxRails::Forms::Client::DEFAULT_READ_TIMEOUT).at_least(:once)
+
+      response = instance_double(Net::HTTPResponse, code: '200', body: '{}')
+      allow(http).to receive(:request).and_return(response)
+
+      described_class.new(api_key: 'sk').form_stats
     end
   end
 end
