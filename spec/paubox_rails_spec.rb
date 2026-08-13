@@ -4,7 +4,6 @@ RSpec.describe PauboxRails do
   before do
     Paubox.configure do |config|
       config.api_key = 'test_key'
-      config.api_user = 'test_user'
     end
   end
 

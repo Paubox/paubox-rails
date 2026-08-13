@@ -36,7 +36,6 @@ Create a new file at config/initializers/paubox.rb and add the following.
 ```ruby
 Paubox.configure do |config|
   config.api_key = ENV['PAUBOX_API_KEY']
-  config.api_user = ENV['PAUBOX_API_USER']
 end
 ```
 
