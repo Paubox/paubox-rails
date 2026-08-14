@@ -33,12 +33,12 @@ spec/
 ```
 paubox-rails
 ├── Email path
-│   ActionMailer → Mail::Paubox (from paubox gem) → RestClient → api.paubox.net
+│   ActionMailer → Mail::Paubox (from paubox gem) → RestClient → api.paubox.com
 └── Forms path
-    PauboxRails::Forms::Client → Net::HTTP → apx.paubox.com/forms
+    PauboxRails::Forms::Client → Net::HTTP → api.paubox.com/forms
 ```
 
-- Email credentials (`api_key`, `api_user`) are configured via `Paubox.configure`.
+- Email credentials (`api_key`) are configured via `Paubox.configure`.
 - Forms **respondent endpoints** (`get_form`, `submit_form`) are public — no credentials needed. All other Forms endpoints require a scoped API key (`forms` scope), passed via `Forms.client(api_key: ...)` or the `PAUBOX_FORMS_API_KEY` env var.
 
 ## Running tests
