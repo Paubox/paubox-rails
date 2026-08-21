@@ -67,3 +67,27 @@ Current: `0.3.0` (in `lib/paubox_rails/version.rb`)
 - `0.1.x` — Initial releases, email delivery only
 - `0.2.0` — Added Paubox Forms API support (public respondent endpoints)
 - `0.3.0` — Full Forms API support, including scoped-API-key (authenticated) management endpoints
+
+## Releases
+
+Releases are automated with [release-please](https://github.com/googleapis/release-please). Merging to `master` refreshes a standing release PR; merging *that* PR bumps `lib/paubox_rails/version.rb`, writes `CHANGELOG.md`, creates a bare `vX.Y.Z` tag and a GitHub release, and then **pushes the gem to RubyGems**.
+
+Do **not** hand-edit `VERSION` or add a `CHANGELOG.md` entry — release-please owns both.
+
+The next version comes from PR titles: `feat:` gives a minor bump, `fix:` a patch, and a `!` suffix or a `BREAKING CHANGE:` footer gives a major. `.github/workflows/pr-title.yml` rejects titles release-please cannot parse.
+
+To force a specific version, land an empty commit with a `Release-As` footer. Put the notes in the subject and footers — release-please renders those but not the commit body:
+
+```bash
+git commit --allow-empty -m "chore: release 1.0.0" -m "Release-As: 1.0.0"
+```
+
+### Publishing
+
+Publishing uses RubyGems **trusted publishing** (OIDC) — no API key is stored. RubyGems pins the trust to the repository and the workflow filename, so **renaming `release-please.yml` breaks publishing** until the trusted publisher entry for the `paubox_rails` gem is updated.
+
+Version numbers on RubyGems are effectively permanent — a yank is only possible within 72 hours and never frees the number for reuse.
+
+### Relationship to the `paubox` gem
+
+This gem depends on `paubox` and the gemspec constraint has to allow whatever major version is current there. When `paubox` takes a major bump, this gem needs a matching release that widens the constraint — otherwise Bundler silently holds users on the older `paubox` with no error. Release `paubox` first, then this gem.
