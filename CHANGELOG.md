@@ -2,9 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [1.0.0](https://github.com/Paubox/paubox-rails/compare/v0.1.6...v1.0.0) (2026-08-21)
 
-Not yet on RubyGems. The newest published version is still `0.1.6` from September 2021.
+First stable release. RubyGems had been on `0.1.6` since September 2021.
+
+### ⚠ BREAKING CHANGES
+
+- Requires `paubox ~> 1.0` ([#17](https://github.com/Paubox/paubox-rails/pull/17)). The previous constraint was `~> 0.3`, which resolves to `< 1.0` and could not pick up [`paubox` 1.0.0](https://rubygems.org/gems/paubox/versions/1.0.0). Applications pinning `paubox` to a 0.x version must upgrade it alongside this gem
 
 ### 🚀 New Features
 
@@ -25,7 +29,7 @@ Not yet on RubyGems. The newest published version is still `0.1.6` from Septembe
 ### 🎉 Enhancements
 
 - Relicense from MIT to Apache 2.0, matching the rest of the Paubox SDKs
-- Replace the dead Travis config with a GitHub Actions CI workflow
+- Replace the dead Travis config with a GitHub Actions CI workflow, now covering Ruby 3.1 through 3.4 ([51c3714](https://github.com/Paubox/paubox-rails/commit/51c3714d32bd2ed29c5c07a7a1d073719b58dbec))
 
 ## v0.1.6 / 2021-09-27
 
