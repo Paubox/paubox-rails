@@ -40,3 +40,14 @@ jobs:
 
       - name: Assert the suite actually executed
         run: ruby .github/scripts/assert_specs_ran.rb rspec-results.json
+
+  route-check:
+    name: Base URLs are routed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Probe the Forms base URL the client uses
+        run: |
+          grep -hoE 'https://api\.paubox\.com[a-zA-Z0-9/_.-]*' lib/paubox_rails/forms.rb \
+            | .github/scripts/route-check.sh
