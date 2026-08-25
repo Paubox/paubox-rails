@@ -9,7 +9,7 @@ This document covers the API endpoints exposed by `paubox-rails`. The gem wraps 
 
 ## Forms API
 
-**Base URL:** `https://api.paubox.com/forms`
+**Base URL:** `https://api.paubox.com/v1/forms`
 
 ### Authentication
 
