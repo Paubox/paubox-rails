@@ -1,9 +1,7 @@
 require 'bundler/setup'
-require 'rubygems'
 require 'paubox'
 require 'paubox_rails'
 require 'fixtures/models/test_mailer.rb'
-require 'pry'
 
 ActionMailer::Base.delivery_method = :paubox
 ActionMailer::Base.prepend_view_path("#{File.dirname(__FILE__)}/fixtures/views")
