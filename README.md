@@ -74,6 +74,37 @@ class UserMailer < ApplicationMailer
 end
 ```
 
+## Scheduled send
+
+Schedule messages for future delivery using `Paubox::Client` directly. The scheduled send methods are provided by the [Paubox Ruby gem](https://github.com/Paubox/paubox-ruby), which this gem depends on.
+
+```ruby
+client = Paubox::Client.new
+
+message = Paubox::Message.new(
+  from:         'sender@yourdomain.com',
+  to:           ['recipient@example.com'],
+  subject:      'Scheduled message',
+  text_content: 'This will be delivered later.'
+)
+
+# Schedule a message
+response = client.schedule_mail(message, '2025-12-25T15:00:00Z')
+puts response['sourceTrackingId']
+
+# Check status
+status = client.get_scheduled(response['sourceTrackingId'])
+puts status['state']          # "pending", "sent", "cancelled"
+
+# Reschedule
+client.reschedule(response['sourceTrackingId'], '2025-12-26T10:00:00Z')
+
+# Cancel
+client.cancel_scheduled(response['sourceTrackingId'])
+```
+
+`scheduled_at` must be an ISO 8601 UTC datetime string in the future and within 30 days.
+
 ## Paubox Forms
 
 The gem includes a client for the [Paubox Forms API](https://docs.paubox.com/forms). The respondent-facing endpoints (fetching a form definition and submitting a response) are **public** — no API key or authentication is required. The form management endpoints (listing, creating, updating, exporting submissions, etc.) require a **scoped API key** — see [Authenticated usage](#authenticated-usage-form-management) below.
