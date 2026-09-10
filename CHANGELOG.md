@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0](https://github.com/Paubox/paubox-rails/compare/v1.0.0...v1.1.0) (2026-09-10)
+
+
+### Features
+
+* add scheduled send support ([#23](https://github.com/Paubox/paubox-rails/issues/23)) ([f60f3e6](https://github.com/Paubox/paubox-rails/commit/f60f3e6d640631202273cba7c8ac6150f13f4752))
+
+
+### Bug Fixes
+
+* target the documented /v1/forms base URL ([#20](https://github.com/Paubox/paubox-rails/issues/20)) ([0bf2abf](https://github.com/Paubox/paubox-rails/commit/0bf2abf715f5e6b365b59cdb9f3003bf76467060))
+
 ## [1.0.0](https://github.com/Paubox/paubox-rails/compare/v0.1.6...v1.0.0) (2026-08-21)
 
 First stable release. RubyGems had been on `0.1.6` since September 2021.
