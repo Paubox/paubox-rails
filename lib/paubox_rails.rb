@@ -2,6 +2,7 @@ require "paubox_rails/version"
 require 'action_mailer'
 require 'paubox'
 require 'paubox_rails/forms'
+require 'paubox_rails/webhooks'
 
 module PauboxRails
   extend self
