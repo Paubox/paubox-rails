@@ -47,7 +47,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Probe the Forms base URL the client uses
+      - name: Probe the base URLs the clients use
         run: |
-          grep -hoE 'https://api\.paubox\.com[a-zA-Z0-9/_.-]*' lib/paubox_rails/forms.rb \
-            | .github/scripts/route-check.sh
+          {
+            grep -hoE 'https://api\.paubox\.com[a-zA-Z0-9/_.-]*' lib/paubox_rails/forms.rb
+            # The webhooks base is probed with /endpoints appended. The gateway
+            # scopes its rule to that one resource so the producers' /v1/events
+            # ingest route stays off the public host, which leaves the bare base
+            # unrouted by design — probing it directly would fail this check for
+            # a URL the client never requests on its own.
+            grep -hoE 'https://api\.paubox\.com[a-zA-Z0-9/_.-]*' lib/paubox_rails/webhooks.rb \
+              | sed 's#/*$#/endpoints#'
+          } | .github/scripts/route-check.sh
