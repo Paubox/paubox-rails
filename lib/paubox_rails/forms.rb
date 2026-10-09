@@ -2,7 +2,7 @@ require 'paubox_rails/forms/client'
 
 module PauboxRails
   module Forms
-    BASE_URL = 'https://api.paubox.com/forms'.freeze
+    BASE_URL = 'https://api.paubox.com/v1/forms'.freeze
 
     class Error < StandardError; end
     class NotFoundError < Error; end

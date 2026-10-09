@@ -178,7 +178,7 @@ RSpec.describe PauboxRails::Forms::Client do
       it 'includes only provided params in the query string' do
         response = instance_double(Net::HTTPResponse, code: '200', body: list_body)
         allow(http).to receive(:request) do |req|
-          expect(req.path).to eq('/forms/api/forms?customer_id=123&archived=false&page=2')
+          expect(req.path).to eq('/v1/forms/api/forms?customer_id=123&archived=false&page=2')
           response
         end
 
@@ -223,7 +223,7 @@ RSpec.describe PauboxRails::Forms::Client do
         response = instance_double(Net::HTTPResponse, code: '200', body: created_body)
         allow(http).to receive(:request) do |req|
           expect(req).to be_a(Net::HTTP::Post)
-          expect(req.path).to eq('/forms/api/forms')
+          expect(req.path).to eq('/v1/forms/api/forms')
           payload = JSON.parse(req.body)
           expect(payload).to include(
             'title' => 'Intake',
@@ -265,7 +265,7 @@ RSpec.describe PauboxRails::Forms::Client do
         body = { 'data' => { 'id' => form_id, 'title' => 'Patient Intake Form' } }.to_json
         response = instance_double(Net::HTTPResponse, code: '200', body: body)
         allow(http).to receive(:request) do |req|
-          expect(req.path).to eq("/forms/api/forms/#{form_id}")
+          expect(req.path).to eq("/v1/forms/api/forms/#{form_id}")
           response
         end
 
@@ -298,7 +298,7 @@ RSpec.describe PauboxRails::Forms::Client do
         response = instance_double(Net::HTTPResponse, code: '200', body: updated_body)
         allow(http).to receive(:request) do |req|
           expect(req).to be_a(Net::HTTP::Put)
-          expect(req.path).to eq("/forms/api/forms/#{form_id}")
+          expect(req.path).to eq("/v1/forms/api/forms/#{form_id}")
           payload = JSON.parse(req.body)
           expect(payload.keys).to contain_exactly('title', 'active')
           expect(payload['title']).to eq('Renamed')
@@ -335,7 +335,7 @@ RSpec.describe PauboxRails::Forms::Client do
         response = instance_double(Net::HTTPResponse, code: '200', body: body)
         allow(http).to receive(:request) do |req|
           expect(req).to be_a(Net::HTTP::Post)
-          expect(req.path).to eq("/forms/api/forms/#{form_id}/archive")
+          expect(req.path).to eq("/v1/forms/api/forms/#{form_id}/archive")
           expect(req.body).to be_nil
           expect(req['Content-Type']).to be_nil
           response
@@ -359,7 +359,7 @@ RSpec.describe PauboxRails::Forms::Client do
         response = instance_double(Net::HTTPResponse, code: '200', body: body)
         allow(http).to receive(:request) do |req|
           expect(req).to be_a(Net::HTTP::Post)
-          expect(req.path).to eq("/forms/api/forms/#{form_id}/unarchive")
+          expect(req.path).to eq("/v1/forms/api/forms/#{form_id}/unarchive")
           expect(req.body).to be_nil
           response
         end
@@ -382,7 +382,7 @@ RSpec.describe PauboxRails::Forms::Client do
         response = instance_double(Net::HTTPResponse, code: '200', body: body)
         allow(http).to receive(:request) do |req|
           expect(req).to be_a(Net::HTTP::Post)
-          expect(req.path).to eq('/forms/api/forms/copy')
+          expect(req.path).to eq('/v1/forms/api/forms/copy')
           payload = JSON.parse(req.body)
           expect(payload).to eq('form_id' => form_id, 'title' => 'Intake (Copy)')
           response
@@ -409,7 +409,7 @@ RSpec.describe PauboxRails::Forms::Client do
       it 'returns parsed stats and requests the bare stats path without customer_id' do
         response = instance_double(Net::HTTPResponse, code: '200', body: stats_body)
         allow(http).to receive(:request) do |req|
-          expect(req.path).to eq('/forms/api/forms/stats')
+          expect(req.path).to eq('/v1/forms/api/forms/stats')
           response
         end
 
@@ -420,7 +420,7 @@ RSpec.describe PauboxRails::Forms::Client do
       it 'includes customer_id in the query string when given' do
         response = instance_double(Net::HTTPResponse, code: '200', body: stats_body)
         allow(http).to receive(:request) do |req|
-          expect(req.path).to eq('/forms/api/forms/stats?customer_id=42')
+          expect(req.path).to eq('/v1/forms/api/forms/stats?customer_id=42')
           response
         end
 
@@ -456,7 +456,7 @@ RSpec.describe PauboxRails::Forms::Client do
       it 'includes only provided params in the query string' do
         response = instance_double(Net::HTTPResponse, code: '200', body: submissions_body)
         allow(http).to receive(:request) do |req|
-          expect(req.path).to eq("/forms/api/forms/#{form_id}/submissions?page=3&order=asc")
+          expect(req.path).to eq("/v1/forms/api/forms/#{form_id}/submissions?page=3&order=asc")
           response
         end
 
@@ -478,7 +478,7 @@ RSpec.describe PauboxRails::Forms::Client do
       it 'returns the raw CSV body untouched' do
         response = instance_double(Net::HTTPResponse, code: '200', body: csv_body)
         allow(http).to receive(:request) do |req|
-          expect(req.path).to eq("/forms/api/forms/#{form_id}/submissions/submission-csv")
+          expect(req.path).to eq("/v1/forms/api/forms/#{form_id}/submissions/submission-csv")
           response
         end
 
@@ -488,7 +488,7 @@ RSpec.describe PauboxRails::Forms::Client do
       it 'appends the submission_id to the path for a single submission' do
         response = instance_double(Net::HTTPResponse, code: '200', body: csv_body)
         allow(http).to receive(:request) do |req|
-          expect(req.path).to eq("/forms/api/forms/#{form_id}/submissions/submission-csv/#{submission_id}")
+          expect(req.path).to eq("/v1/forms/api/forms/#{form_id}/submissions/submission-csv/#{submission_id}")
           response
         end
 
@@ -511,7 +511,7 @@ RSpec.describe PauboxRails::Forms::Client do
         response = instance_double(Net::HTTPResponse, code: '200', body: pdf_body)
         allow(http).to receive(:request) do |req|
           expect(req.path)
-            .to eq("/forms/api/forms/#{form_id}/submissions/#{submission_id}/submission-pdf")
+            .to eq("/v1/forms/api/forms/#{form_id}/submissions/#{submission_id}/submission-pdf")
           response
         end
 
@@ -632,7 +632,7 @@ RSpec.describe PauboxRails::Forms::Client do
     it 'accepts a valid UUID and leaves it unchanged in the URL' do
       response = instance_double(Net::HTTPResponse, code: '200', body: '{"data":{}}')
       allow(http).to receive(:request) do |req|
-        expect(req.path).to eq("/forms/api/forms/#{form_id}")
+        expect(req.path).to eq("/v1/forms/api/forms/#{form_id}")
         response
       end
       auth_client.get_form_details(form_id)
