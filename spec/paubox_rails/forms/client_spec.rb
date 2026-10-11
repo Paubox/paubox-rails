@@ -560,7 +560,6 @@ RSpec.describe PauboxRails::Forms::Client do
   describe 'URL-path safety (regression)' do
     let(:api_key) { 'sk-test-key' }
     let(:auth_client) { described_class.new(api_key: api_key) }
-    let(:no_key_client) { described_class.new(api_key: nil) }
 
     HOSTILE_IDS = ['..', '.', '', 'abc', 'abc/submissions', 'abc?admin=true',
                    'abc#anchor', '../public/form_data/x',
