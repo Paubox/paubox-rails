@@ -204,6 +204,90 @@ File.write('submissions.csv', client.submissions_csv(form_id))
 
 Also available: `get_form_details`, `update_form`, `archive_form`, `unarchive_form`, `copy_form`, `form_stats`, and `submission_pdf`. See [api.md](api.md) for the full Forms API reference.
 
+## Webhooks
+
+A webhook endpoint is a URL you own that Paubox notifies when something happens. `PauboxRails::Webhooks` manages those subscriptions: which URL to notify, and for which events.
+
+Build a client with an API key scoped for the events you want, or rely on the `PAUBOX_WEBHOOKS_API_KEY` environment variable:
+
+```ruby
+client = PauboxRails::Webhooks.client(api_key: ENV['PAUBOX_WEBHOOKS_API_KEY'])
+
+# or, reading the environment variable itself:
+client = PauboxRails::Webhooks.client
+```
+
+The key is sent as an `Authorization: Bearer` header — not the Email API's `Token token=`. Calling a method without one raises `PauboxRails::Webhooks::MissingApiKeyError` before any HTTP request is made. Unlike the Forms client, the base URL is overridable, via `base_url:` or `PAUBOX_WEBHOOKS_URL`, so staging QA does not require editing the gem.
+
+Which events a key may subscribe to follows from its scopes. The SDK does not inspect them — the service refuses an event the key isn't scoped for with 403 (`ForbiddenError`), and an unrecognised event with 422.
+
+**Available events**
+
+| Event | Fires when |
+| --- | --- |
+| `forms.submission.created` | A form submission is received |
+| `api_mail_log_delivered` | An Email API message is delivered |
+| `api_mail_log_opened` | A delivered message is opened |
+| `api_mail_log_temporary_failure` | Delivery fails temporarily |
+| `api_mail_log_permanent_failure` | Delivery fails permanently |
+| `email.inbound.received` | Inbound mail is received |
+
+The four Email API events keep their legacy `api_mail_log_` names, so a receiver written
+against the old Email API webhooks keeps working unchanged. Note these are the names on
+the wire: `delivered` or `failed` on their own are rejected as unknown.
+
+The SDK does not check these names. The catalog lives in the service, so an event added
+later works here without upgrading the SDK.
+
+### Creating a webhook endpoint
+
+```ruby
+endpoint = client.create_webhook_endpoint(
+  target_url: 'https://example.com/paubox-webhook',
+  events: ['forms.submission.created']
+)
+
+endpoint['id']             # UUID
+endpoint['signing_secret'] # whsec_... — store this now
+```
+
+`signing_secret` is returned **once**, here. It is absent from `get_webhook_endpoint` and `list_webhook_endpoints`, and there is no way to read it back — recovering from a lost secret means deleting the endpoint and creating a new one. Use it to verify that deliveries really came from Paubox.
+
+### Listing, fetching, updating and deleting
+
+```ruby
+# Returns the full document: "data" plus "page_info"
+result = client.list_webhook_endpoints
+result['page_info']['count'] # total matching, not the length of this page
+
+client.list_webhook_endpoints(page: 2, items: 25)
+
+client.get_webhook_endpoint('2ec66c21-bf48-48eb-8d28-f80b2d6b77c7')
+
+# Only the keyword arguments you pass are sent
+client.update_webhook_endpoint(endpoint_id, status: 'disabled')
+
+client.delete_webhook_endpoint(endpoint_id)
+```
+
+Pausing deliveries without losing the subscription is what `disabled` is for; pass `active` to resume. Passing `events:` replaces the list rather than adding to it. Delete answers `204 No Content`, stops every event on that endpoint, and takes the signing secret with it.
+
+### Error handling
+
+Failures raise a `PauboxRails::Webhooks::Error` subclass chosen by status — `BadRequestError`, `UnauthorizedError`, `ForbiddenError`, `NotFoundError` — with the service's own message rather than a bare status:
+
+```ruby
+begin
+  client.create_webhook_endpoint(target_url: url, events: ['forms.submission.created'])
+rescue PauboxRails::Webhooks::Error => e
+  e.message # "target_url: an endpoint already exists for this URL"
+end
+```
+
+Two cases worth handling explicitly: subscribing a `target_url` that already has an endpoint comes back as 422, and an id that doesn't belong to your account is a 404 rather than a 403. An id that isn't a UUID raises `ArgumentError` locally, before any request is made.
+
+See [api.md](api.md) for the full webhooks reference.
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/paubox/paubox-rails.

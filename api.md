@@ -1,9 +1,10 @@
 # Paubox API Reference
 
-This document covers the API endpoints exposed by `paubox-rails`. The gem wraps two separate Paubox services:
+This document covers the API endpoints exposed by `paubox-rails`. The gem wraps three separate Paubox services:
 
 - **Email API** — authenticated, delegates to the [`paubox`](https://github.com/paubox/paubox_ruby) gem via ActionMailer
 - **Forms API** — public respondent endpoints plus authenticated management endpoints, implemented directly in this gem
+- **Webhooks API** — authenticated subscription management, implemented directly in this gem
 
 ---
 
@@ -689,3 +690,197 @@ File.binwrite('submission.pdf', pdf)
 Email delivery is handled transparently by ActionMailer using the `:paubox` delivery method. There is no direct HTTP interaction in this gem — all email API calls are delegated to the [`paubox`](https://github.com/paubox/paubox_ruby) gem.
 
 See the [Paubox Ruby gem documentation](https://github.com/paubox/paubox_ruby) for the full Email API reference, including message status tracking and templated messages.
+
+---
+
+## Webhooks API
+
+**Base URL:** `https://api.paubox.com/v1/webhooks`
+
+Every request carries the `/endpoints` resource. The bare base is unrouted on the public gateway by design: the rule is scoped to `/endpoints` so the producers' event-ingest route stays private. Unlike Forms, the base is overridable with `base_url:` or `PAUBOX_WEBHOOKS_URL`.
+
+### Authentication
+
+An API key scoped for the events you want, sent as a Bearer header:
+
+```
+Authorization: Bearer <SCOPED_API_KEY>
+```
+
+Read from `PAUBOX_WEBHOOKS_API_KEY` when not passed explicitly. Calling a method without a key raises `MissingApiKeyError` before any request is sent. Which events a key may subscribe to follows from its scopes; the gem does not inspect them, so an event the key is not scoped for returns 403 and an unrecognised one 422.
+
+**Available events**
+
+| Event | Fires when |
+| --- | --- |
+| `forms.submission.created` | A form submission is received |
+| `api_mail_log_delivered` | An Email API message is delivered |
+| `api_mail_log_opened` | A delivered message is opened |
+| `api_mail_log_temporary_failure` | Delivery fails temporarily |
+| `api_mail_log_permanent_failure` | Delivery fails permanently |
+| `email.inbound.received` | Inbound mail is received |
+
+The four Email API events keep their legacy `api_mail_log_` names, so a receiver written
+against the old Email API webhooks keeps working unchanged. Note these are the names on
+the wire: `delivered` or `failed` on their own are rejected as unknown.
+
+The SDK does not check these names. The catalog lives in the service, so an event added
+later works here without upgrading the SDK.
+
+```ruby
+client = PauboxRails::Webhooks.client(api_key: ENV['PAUBOX_WEBHOOKS_API_KEY'])
+```
+
+---
+
+### List Webhook Endpoints
+
+**GET** `/endpoints`
+
+Returns the endpoints this key can act on. Endpoints carrying an event the key is not scoped for are filtered out by the service.
+
+**Query parameters:**
+- `page` (integer, optional) — 1-based page number
+- `items` (integer, optional) — page size
+
+**Response (200):**
+```json
+{
+  "data": [
+    {
+      "id": "2ec66c21-bf48-48eb-8d28-f80b2d6b77c7",
+      "target_url": "https://example.com/paubox-webhook",
+      "status": "active",
+      "events": ["forms.submission.created"],
+      "created_at": "2026-10-09T01:43:41.639968+00:00",
+      "updated_at": "2026-10-09T01:43:41.639968+00:00"
+    }
+  ],
+  "page_info": { "count": 1, "items": 50 }
+}
+```
+
+`page_info.count` is the total number of matching endpoints, not the length of `data`.
+
+```ruby
+result = client.list_webhook_endpoints
+result = client.list_webhook_endpoints(page: 2, items: 25)
+```
+
+Returns the full document — `data` plus `page_info` — since a caller paginating needs both.
+
+---
+
+### Create Webhook Endpoint
+
+**POST** `/endpoints`
+
+**Request body:**
+- `target_url` (string, required) — an https URL resolving to a publicly routable address
+- `events` (array of strings, required, non-empty)
+
+**Response (201):**
+```json
+{
+  "data": {
+    "id": "2ec66c21-bf48-48eb-8d28-f80b2d6b77c7",
+    "target_url": "https://example.com/paubox-webhook",
+    "status": "active",
+    "events": ["forms.submission.created"],
+    "created_at": "2026-10-09T01:43:41.639968+00:00",
+    "updated_at": "2026-10-09T01:43:41.639968+00:00",
+    "signing_secret": "whsec_..."
+  },
+  "message": "Store this signing_secret now — it is not shown again."
+}
+```
+
+`signing_secret` is returned only here. It is absent from get and list, and cannot be read back: recovering from a lost secret means replacing the endpoint.
+
+**Errors:**
+- `422` (`BadRequestError`) — missing or malformed `target_url`, an empty `events`, an unrecognised event, or a `target_url` that already has an endpoint
+- `403` (`ForbiddenError`) — an event this key is not scoped for
+
+```ruby
+endpoint = client.create_webhook_endpoint(
+  target_url: 'https://example.com/paubox-webhook',
+  events: ['forms.submission.created']
+)
+endpoint['signing_secret']
+```
+
+Returns the endpoint itself, unwrapped from the `data` envelope.
+
+---
+
+### Get Webhook Endpoint
+
+**GET** `/endpoints/<id>`
+
+**Path parameter:**
+- `endpoint_id` (UUID, required)
+
+**Response (200):** the endpoint, wrapped in `data`. The signing secret is not included.
+
+**Errors:**
+- `404` (`NotFoundError`) — no such endpoint, or it belongs to another account
+
+```ruby
+client.get_webhook_endpoint('2ec66c21-bf48-48eb-8d28-f80b2d6b77c7')
+```
+
+An id that is not UUID-shaped raises `ArgumentError` before any request is sent.
+
+---
+
+### Update Webhook Endpoint
+
+**PATCH** `/endpoints/<id>`
+
+A partial update: only the fields sent are changed.
+
+**Request body (all optional, at least one required):**
+- `target_url` (string)
+- `status` (string) — `"active"` or `"disabled"`
+- `events` (array of strings) — replaces the list rather than adding to it
+
+**Response (200):** the updated endpoint, wrapped in `data`.
+
+```ruby
+client.update_webhook_endpoint(endpoint_id, status: 'disabled')
+client.update_webhook_endpoint(endpoint_id, target_url: 'https://example.com/new-hook')
+```
+
+`disabled` pauses deliveries without losing the subscription; `active` resumes them.
+
+---
+
+### Delete Webhook Endpoint
+
+**DELETE** `/endpoints/<id>`
+
+**Response:**
+- `204` — deleted, no body
+- `404` (`NotFoundError`) — no such endpoint, or it belongs to another account
+
+Deleting stops every event on that endpoint and discards its signing secret.
+
+```ruby
+client.delete_webhook_endpoint(endpoint_id) # => true
+```
+
+---
+
+### Webhook Errors
+
+Failures raise a subclass of `PauboxRails::Webhooks::Error`, chosen by status:
+
+| Status | Class |
+|---|---|
+| 400, 422 | `BadRequestError` |
+| 401 | `UnauthorizedError` |
+| 403 | `ForbiddenError` |
+| 404 | `NotFoundError` |
+| no API key | `MissingApiKeyError` |
+
+The message is unwrapped from the service's `{"message": "..."}` shape rather than interpolating the raw body, so a caller sees `target_url: must be an https URL` instead of a JSON blob. An unexpected shape falls back to the raw body so nothing is lost.
