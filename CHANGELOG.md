@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0](https://github.com/Paubox/paubox-rails/compare/v1.1.0...v1.2.0) (2026-10-14)
+
+
+### Features
+
+* add a client for the pb_webhooks service ([#25](https://github.com/Paubox/paubox-rails/issues/25)) ([910dfd0](https://github.com/Paubox/paubox-rails/commit/910dfd0fa3eea024eeabcc23180ad5a95c0b5bc8))
+
 ## [1.1.0](https://github.com/Paubox/paubox-rails/compare/v1.0.0...v1.1.0) (2026-09-10)
 
 
